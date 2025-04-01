@@ -1,0 +1,68 @@
+# build output
+dist/
+dist-ssr
+
+# dependencies
+node_modules/
+
+# logs
+logs
+*.log
+lerna-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment variables
+.env
+.env.production
+
+# jetbrains setting folder
+.idea/
+
+*.orig
+*.pyc
+*.swp
+
+/.cargo_home/
+/.idea/
+/.vs/
+gclient_config.py_entries
+/target/
+/std/hash/_wasm/target
+/tests/wpt/runner/manifest.json
+/third_party/
+/tests/napi/node_modules
+/tests/napi/build
+/tests/napi/third_party_tests/node_modules
+
+# MacOS generated files
+.DS_Store
+.DS_Store?
+
+# Flamegraphs
+/flamebench*.svg
+/flamegraph*.svg
+
+# WPT generated cert files
+/tests/wpt/runner/certs/index.txt*
+/tests/wpt/runner/certs/serial*
+
+/ext/websocket/autobahn/reports
+
+# JUnit files produced by deno test --junit
+junit.xml
+
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,38 @@
+services:
+  server:
+    build: server
+    restart: unless-stopped
+    volumes:
+      - ./server:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.server-router.entrypoints=web"
+      - "traefik.http.routers.server-router.rule=PathPrefix(`/api`)"
+      - "traefik.http.services.server-service.loadbalancer.server.port=8000"
+    env_file:
+      - project.env
+
+  client:
+    build: client
+    restart: unless-stopped
+    volumes:
+      - ./client:/app
+    depends_on:
+      - server
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client-router.entrypoints=web"
+      - "traefik.http.routers.client-router.rule=PathPrefix(`/`)"
+      - "traefik.http.services.client-service.loadbalancer.server.port=4321"
+
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:8000"
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
