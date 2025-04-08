@@ -1,5 +1,9 @@
 {
+  "tasks": {
+    "dev": "deno run --env-file=.env.development --allow-env --allow-net --unstable --watch app-run.js"
+  },
   "imports": {
-    "@hono/hono": "jsr:@hono/hono@4.6.5"
+    "@hono/hono": "jsr:@hono/hono@4.6.5",
+    "better-auth": "npm:better-auth@^1.2.5"
   }
 }
