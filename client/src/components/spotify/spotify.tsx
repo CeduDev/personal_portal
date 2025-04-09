@@ -1,16 +1,31 @@
 import { useQuery } from "@/hooks/user-query";
 import { Button } from "../ui/button";
 import { useNavigate } from "react-router";
-import { useEffect } from "react";
+import { use, useEffect } from "react";
+import { SpotifyProviderContext } from "@/contexts/spotify-context";
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div>
+      <div>Spotify</div>
+      {children}
+    </div>
+  );
+}
 
 function Spotify() {
   const query = useQuery();
   const navigate = useNavigate();
+  const context = use(SpotifyProviderContext);
   const ERROR_STATE = "state_mismatch";
   const ERROR_TOKEN = "invalid_token";
 
   const spotifyLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_URL}/spotify/login`;
+  };
+
+  const spotifyLogout = () => {
+    context.updateLogin("logout");
   };
 
   useEffect(() => {
@@ -26,33 +41,40 @@ function Spotify() {
 
       query.delete("access_token");
       query.delete("refresh_token");
+      context.updateLogin("login");
       void navigate("/spotify");
     }
-  }, [navigate, query]);
+  }, [context, navigate, query]);
 
   if (query.get("error") === ERROR_STATE) {
     return (
-      <div>
-        <div>Spotify</div>
+      <Wrapper>
         <div>Error with state</div>
-      </div>
+      </Wrapper>
     );
   }
 
   if (query.get("error") === ERROR_TOKEN) {
     return (
-      <div>
-        <div>Spotify</div>
+      <Wrapper>
         <div>Error with token</div>
-      </div>
+      </Wrapper>
+    );
+  }
+
+  if (!context.isLoggedIn) {
+    return (
+      <Wrapper>
+        <Button onClick={spotifyLogin}>Spotify Login</Button>
+      </Wrapper>
     );
   }
 
   return (
-    <div>
-      <div>Spotify</div>
-      <Button onClick={spotifyLogin}>Spotify Login</Button>
-    </div>
+    <Wrapper>
+      <div>You are logged in!</div>
+      <Button onClick={spotifyLogout}>Spotify Logout</Button>
+    </Wrapper>
   );
 }
 
