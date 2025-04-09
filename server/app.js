@@ -32,7 +32,7 @@ app.get("/spotify/login", async function (c) {
   const scope = "user-read-private user-read-email";
 
   setCookie(c, SPOTIFY_STATE_KEY, state, {
-    domain: "127.0.0.1",
+    domain: BASE_URL_DOMAIN,
     path: "/",
     sameSite: "lax",
     secure: ENV !== "dev", // Set to true in production with HTTPS
