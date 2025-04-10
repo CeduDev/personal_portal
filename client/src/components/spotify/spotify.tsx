@@ -8,70 +8,105 @@ import {
   SPOTIFY_ACCESS_TOKEN_SK,
   SPOTIFY_REFRESH_TOKEN_SK,
 } from "@/lib/constants";
-import { z } from "zod";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "../ui/card";
+import { cn } from "@/lib/generalUtils";
+import { GlobalProviderContext } from "@/contexts/global-context";
+import { UserProfileType } from "@/lib/types/spotify-types";
+import { fetchProfile } from "@/lib/spotifyUtils";
 
-function Wrapper({ children }: { children: React.ReactNode }) {
+const SingleItemWrapper = ({
+  title,
+  login,
+}: {
+  title: string;
+  login: () => void;
+}) => {
   return (
-    <div>
-      <div>Spotify</div>
-      {children}
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="w-full max-w-sm">
+        <div className={cn("flex flex-col gap-6")}>
+          <Card className="@container/card">
+            <CardHeader>
+              <CardTitle className="text-2xl text-center">{title}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-center">
+              <Button onClick={login}>Spotify Login</Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
-const refreshTokenType = z.object({
-  access_token: z.string(),
-  refresh_token: z.string().optional(),
-});
+const HeaderComponent = ({
+  buttonText,
+  onClick,
+}: {
+  buttonText: string;
+  onClick: () => void;
+}) => {
+  return (
+    <div className="flex w-full items-right justify-end p-1">
+      <LoadingButton onClick={onClick}>{buttonText}</LoadingButton>
+    </div>
+  );
+};
 
-// const profileType = z.object({
-
-// })
-
-function Spotify() {
+const Spotify = () => {
   const query = useQuery();
   const navigate = useNavigate();
-  const context = use(SpotifyProviderContext);
+  const spotifyContext = use(SpotifyProviderContext);
+  const siteHeaderContext = use(GlobalProviderContext).siteHeader;
   const ERROR_STATE = "state_mismatch";
   const ERROR_TOKEN = "invalid_token";
 
-  const [refreshTokenLoading, setRefreshTokenLoading] = useState(false);
-  const [fetchProfileLoading, setFetchProfileLoading] = useState(false);
+  // const [refreshTokenLoading, setRefreshTokenLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfileType | null>(null);
+  // const [topArtists, setTopArtists] = useState(null);
 
+  // Utils
   const spotifyLogin = () => {
     window.location.href = `${import.meta.env.VITE_API_URL}/spotify/login`;
   };
 
   const spotifyLogout = () => {
-    context.updateLogin("logout");
+    spotifyContext.updateLogin("logout");
   };
 
-  const refreshTokens = async () => {
-    setRefreshTokenLoading(true);
-    const existingToken = localStorage.getItem(SPOTIFY_REFRESH_TOKEN_SK);
-    const response = await fetch(
-      `/api/spotify/refresh_token?refresh_token=${existingToken}`
-    );
-    const res = refreshTokenType.parse(await response.json());
+  // OnMount
+  useEffect(() => {
+    siteHeaderContext.updateTitle("Spotify");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    localStorage.setItem(SPOTIFY_ACCESS_TOKEN_SK, res.access_token);
-    if (res.refresh_token)
-      localStorage.setItem(SPOTIFY_REFRESH_TOKEN_SK, res.refresh_token);
-    setRefreshTokenLoading(false);
-  };
+  // Effects
+  useEffect(() => {
+    if (spotifyContext.isLoggedIn) {
+      fetchProfile()
+        .then((res) => {
+          console.log(res);
+          if (res) setUserProfile(res);
+        })
+        .catch((e) => console.log(e));
 
-  const fetchProfile = async () => {
-    setFetchProfileLoading(true);
-    const token = localStorage.getItem(SPOTIFY_ACCESS_TOKEN_SK);
-    const response = await fetch("https://api.spotify.com/v1/me", {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const a = await response.json();
-    console.log(a);
-    setFetchProfileLoading(false);
-  };
+      siteHeaderContext.updateComponentsToRender(
+        <HeaderComponent
+          buttonText={"Spotify Logout"}
+          onClick={spotifyLogout}
+        />
+      );
+    } else {
+      siteHeaderContext.updateComponentsToRender(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotifyContext.isLoggedIn]);
 
   useEffect(() => {
     if (query.has("access_token") && query.has("refresh_token")) {
@@ -86,53 +121,57 @@ function Spotify() {
 
       query.delete("access_token");
       query.delete("refresh_token");
-      context.updateLogin("login");
+      spotifyContext.updateLogin("login");
       void navigate("/spotify");
     }
-  }, [context, navigate, query]);
+  }, [spotifyContext, navigate, query]);
 
-  if (query.get("error") === ERROR_STATE) {
-    return (
-      <Wrapper>
-        <div>Error with state</div>
-      </Wrapper>
-    );
+  // HTML returns
+  if (query.has("error")) {
+    let title = "Unexpected error, check URL query for error";
+
+    if (query.get("error") === ERROR_STATE) {
+      title = "Error with state, try again...";
+    }
+
+    if (query.get("error") === ERROR_TOKEN) {
+      title = "Error with token, try again...";
+    }
+
+    return <SingleItemWrapper title={title} login={spotifyLogin} />;
   }
 
-  if (query.get("error") === ERROR_TOKEN) {
+  if (!spotifyContext.isLoggedIn) {
     return (
-      <Wrapper>
-        <div>Error with token</div>
-      </Wrapper>
-    );
-  }
-
-  if (!context.isLoggedIn) {
-    return (
-      <Wrapper>
-        <Button onClick={spotifyLogin}>Spotify Login</Button>
-      </Wrapper>
+      <SingleItemWrapper
+        title="Please login using your Spotify account"
+        login={spotifyLogin}
+      />
     );
   }
 
   return (
-    <Wrapper>
-      <div>You are logged in!</div>
-      <LoadingButton onClick={spotifyLogout}>Spotify Logout</LoadingButton>
-      <LoadingButton
-        loading={refreshTokenLoading}
-        onClick={() => void refreshTokens()}
-      >
-        Refresh token
-      </LoadingButton>
-      <LoadingButton
-        loading={fetchProfileLoading}
-        onClick={() => void fetchProfile()}
-      >
-        Fetch Profile
-      </LoadingButton>
-    </Wrapper>
+    // <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    //   <div className="w-full max-w-sm">
+    //     <LoadingButton
+    //       loading={fetchProfileLoading}
+    //       onClick={() => void fetchProfile()}
+    //     >
+    //       Fetch Profile
+    //     </LoadingButton>
+    //   </div>
+    // </div>
+    <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>User Name</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            {userProfile?.display_name}
+          </CardTitle>
+        </CardHeader>
+      </Card>
+    </div>
   );
-}
+};
 
 export default Spotify;
