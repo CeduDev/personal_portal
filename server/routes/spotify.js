@@ -20,7 +20,7 @@ const generateRandomString = (length) => {
 
 spotify_routes.get("/login", async function (c) {
   const state = generateRandomString(16);
-  const scope = "user-read-private user-read-email";
+  const scope = "user-read-private user-read-email user-top-read";
 
   setCookie(c, SPOTIFY_STATE_KEY, state, {
     domain: BASE_URL_DOMAIN,
