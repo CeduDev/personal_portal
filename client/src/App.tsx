@@ -9,11 +9,6 @@ import { GlobalProvider } from "./contexts/global-context";
 import { SiteHeader } from "./components/site-header";
 import { Root } from "./components/root";
 import { Toaster } from "sonner";
-// import { SectionCards } from "./components/section-cards";
-// import { ChartAreaInteractive } from "./components/chart-area-interactive";
-// import { DataTable } from "./components/data-table";
-
-// import data from "./app/dashboard/data.json";
 
 function App() {
   return (
@@ -33,11 +28,6 @@ function App() {
                       <Route path="/spotify" element={<Spotify />} />
                       <Route path="/maps" element={<Maps />} />
                     </Routes>
-                    {/* <SectionCards />
-                <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
-                </div>
-                <DataTable data={data} /> */}
                   </div>
                 </div>
               </div>
