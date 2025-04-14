@@ -23,10 +23,15 @@ export const UserProfile = z.object({
   type: z.string(),
   uri: z.string(),
 });
-
 export type UserProfileType = z.infer<typeof UserProfile>;
 
-export const Artist = z.object({
+export enum TopArtistsSelected {
+  LAST_4_WEEKS = "short_term",
+  LAST_6_MONTHS = "medium_term",
+  LAST_YEAR = "long_term",
+}
+
+export const RawArtist = z.object({
   external_urls: z.object({ spotify: z.string() }),
   followers: z.object({ href: z.string().nullable(), total: z.number() }),
   genres: z.array(z.string()),
@@ -39,7 +44,19 @@ export const Artist = z.object({
   uri: z.string(),
 });
 
-export type Artist = z.infer<typeof Artist>;
+export const Artist = RawArtist.extend({
+  my_rank: z.number(),
+});
+
+export const RawTopArtists = z.object({
+  href: z.string(),
+  limit: z.number(),
+  next: z.string().nullable(),
+  offset: z.number(),
+  previous: z.string().nullable(),
+  total: z.number(),
+  items: z.array(RawArtist),
+});
 
 export const TopArtists = z.object({
   href: z.string(),
@@ -49,9 +66,15 @@ export const TopArtists = z.object({
   previous: z.string().nullable(),
   total: z.number(),
   items: z.array(Artist),
+  span: z.nativeEnum(TopArtistsSelected),
 });
-
 export type TopArtistsType = z.infer<typeof TopArtists>;
+
+export enum TopArtistsSortByValues {
+  MY_RANK = "my_rank",
+  GLOBAL_RANK = "global_rank",
+  FOLLOWERS = "followers",
+}
 
 export const FetchError = z.object({
   error: z.object({
