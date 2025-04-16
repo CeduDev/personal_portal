@@ -7,9 +7,9 @@ import {
   UserProfileType,
   TopArtistsType,
   TopArtists,
-  TopArtistsSortByValues,
+  TopItemsSortByValues,
   RawTopArtists,
-  TopArtistsSelected,
+  TopItemsSelected,
 } from "./types/spotify-types";
 
 // Token
@@ -73,7 +73,7 @@ export const fetchProfile = async (
 // Top artist
 export const fetchTopArtists = async (
   retry = false,
-  span: TopArtistsSelected
+  span: TopItemsSelected
 ): Promise<TopArtistsType | null> => {
   try {
     const response = await fetcherGet(
@@ -122,13 +122,13 @@ export const fetchTopArtists = async (
 export const fetchAllTopArtists = async (): Promise<TopArtistsType[]> => {
   const last_4_weeks = await fetchTopArtists(
     false,
-    TopArtistsSelected.LAST_4_WEEKS
+    TopItemsSelected.LAST_4_WEEKS
   );
   const last_6_months = await fetchTopArtists(
     false,
-    TopArtistsSelected.LAST_6_MONTHS
+    TopItemsSelected.LAST_6_MONTHS
   );
-  const last_year = await fetchTopArtists(false, TopArtistsSelected.LAST_YEAR);
+  const last_year = await fetchTopArtists(false, TopItemsSelected.LAST_YEAR);
 
   if (last_4_weeks && last_6_months && last_year) {
     return [last_4_weeks, last_6_months, last_year];
@@ -146,9 +146,9 @@ export const artistSortByRanking = (
   all_data: TopArtistsType[] | null,
   setData: React.Dispatch<React.SetStateAction<TopArtistsType | null>>,
   setAllData: React.Dispatch<React.SetStateAction<TopArtistsType[] | null>>,
-  value: TopArtistsSortByValues,
+  value: TopItemsSortByValues,
   setArtistSortByValue: React.Dispatch<
-    React.SetStateAction<TopArtistsSortByValues>
+    React.SetStateAction<TopItemsSortByValues>
   >
 ) => {
   if (data && all_data && all_data.length > 0) {
@@ -157,17 +157,17 @@ export const artistSortByRanking = (
     setArtistSortByValue(value);
 
     switch (value) {
-      case TopArtistsSortByValues.MY_RANK: {
+      case TopItemsSortByValues.MY_RANK: {
         data_.items = data_.items.sort((a, b) => a.my_rank - b.my_rank);
         break;
       }
 
-      case TopArtistsSortByValues.GLOBAL_RANK: {
+      case TopItemsSortByValues.GLOBAL_RANK: {
         data_.items = data_.items.sort((a, b) => b.popularity - a.popularity);
         break;
       }
 
-      case TopArtistsSortByValues.FOLLOWERS: {
+      case TopItemsSortByValues.FOLLOWERS: {
         data_.items = data_.items.sort(
           (a, b) => b.followers.total - a.followers.total
         );
@@ -188,8 +188,8 @@ export const artistSortByRanking = (
 export const artistFilter = (
   all_data: TopArtistsType[] | null,
   setData: React.Dispatch<React.SetStateAction<TopArtistsType | null>>,
-  value: TopArtistsSelected,
-  setValue: React.Dispatch<React.SetStateAction<TopArtistsSelected>>
+  value: TopItemsSelected,
+  setValue: React.Dispatch<React.SetStateAction<TopItemsSelected>>
 ) => {
   if (all_data && all_data.length > 0) {
     const all_data_ = all_data;

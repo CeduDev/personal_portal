@@ -1,14 +1,14 @@
 import { use, useEffect, useState } from "react";
 import { cn } from "@/lib/generalUtils";
 import {
-  artistSortByRanking,
-  artistFilter,
-  fetchAllTopArtists,
+  songSortByRanking,
+  songFilter,
+  fetchAllTopSongs,
 } from "@/lib/spotifyUtils";
 import {
-  TopItemsSortByValues,
-  TopItemsSelected,
-  TopArtistsType,
+  TopSongsSortByValues,
+  TopSongsSelected,
+  TopSongsType,
 } from "@/lib/types/spotify-types";
 import {
   Dialog,
@@ -37,42 +37,41 @@ import {
 import { Spinner } from "../ui/spinner";
 import { SpotifyProviderContext } from "@/contexts/spotify-context";
 
-const TopArtists = () => {
-  const [artistSortByValue, setArtistSortByValue] =
-    useState<TopItemsSortByValues>(TopItemsSortByValues.MY_RANK);
-  const [selectedArtistsSpan, setSelectedArtistsSpan] =
-    useState<TopItemsSelected>(TopItemsSelected.LAST_4_WEEKS);
-  const [topArtists, setTopArtists] = useState<TopArtistsType | null>(null);
-  const [allTopArtists, setAllTopArtists] = useState<TopArtistsType[] | null>(
-    null
-  );
-  const [topArtistsLoading, setTopArtistsLoading] = useState(false);
-
+const TopSongs = () => {
   const spotifyContext = use(SpotifyProviderContext);
+  // const [songSortByValue, setSongSortByValue] =
+  //   useState<TopSongsSortByValues>(TopSongsSortByValues.MY_RANK);
+  // const [selectedSongsSpan, setSelectedSongsSpan] =
+  //   useState<TopSongsSelected>(TopSongsSelected.LAST_4_WEEKS);
+  // const [topSongs, setTopSongs] = useState<TopSongsType | null>(null);
+  // const [allTopSongs, setAllTopSongs] = useState<TopSongsType[] | null>(
+  //   null
+  // );
+  // const [topSongsLoading, setTopSongsLoading] = useState(false);
 
-  useEffect(() => {
-    if (spotifyContext.isLoggedIn) {
-      if (!allTopArtists) {
-        setTopArtistsLoading(true);
-        fetchAllTopArtists()
-          .then((res) => {
-            setAllTopArtists(res);
-            setTopArtists(res[0]);
-          })
-          .catch((e) => console.log(e))
-          .finally(() => setTopArtistsLoading(false));
-      }
-    }
-  }, [allTopArtists, spotifyContext.isLoggedIn]);
+  // useEffect(() => {
+  //   if (spotifyContext.isLoggedIn) {
+  //     if (!allTopSongs) {
+  //       setTopSongsLoading(true);
+  //       fetchAllTopSongs()
+  //         .then((res) => {
+  //           setAllTopSongs(res);
+  //           setTopSongs(res[0]);
+  //         })
+  //         .catch((e) => console.log(e))
+  //         .finally(() => setTopSongsLoading(false));
+  //     }
+  //   }
+  // }, [allTopSongs, spotifyContext.isLoggedIn]);
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 mb-4">
-      <Card className="@container/card">
+      {/* <Card className="@container/card">
         <CardHeader className="grid grid-cols-3 items-center relative">
           <div></div>
           <div className="text-center">
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              Top Artists
+              Top Songs
             </CardTitle>
           </div>
           <div className="flex justify-end">
@@ -82,27 +81,29 @@ const TopArtists = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
                 <DropdownMenuRadioGroup
-                  value={artistSortByValue}
+                  value={songSortByValue}
                   onValueChange={(value) =>
-                    artistSortByRanking(
-                      topArtists,
-                      allTopArtists,
-                      setTopArtists,
-                      setAllTopArtists,
-                      value as TopItemsSortByValues,
-                      setArtistSortByValue
+                    songSortByRanking(
+                      topSongs,
+                      allTopSongs,
+                      setTopSongs,
+                      setAllTopSongs,
+                      value as TopSongsSortByValues,
+                      setSongSortByValue
                     )
                   }
                 >
-                  <DropdownMenuRadioItem value={TopItemsSortByValues.MY_RANK}>
+                  <DropdownMenuRadioItem value={TopSongsSortByValues.MY_RANK}>
                     My Rank
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem
-                    value={TopItemsSortByValues.GLOBAL_RANK}
+                    value={TopSongsSortByValues.GLOBAL_RANK}
                   >
                     Global Rank
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={TopItemsSortByValues.FOLLOWERS}>
+                  <DropdownMenuRadioItem
+                    value={TopSongsSortByValues.FOLLOWERS}
+                  >
                     Followers
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
@@ -114,23 +115,27 @@ const TopArtists = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
                 <DropdownMenuRadioGroup
-                  value={selectedArtistsSpan}
+                  value={selectedSongsSpan}
                   onValueChange={(value) =>
-                    artistFilter(
-                      allTopArtists,
-                      setTopArtists,
-                      value as TopItemsSelected,
-                      setSelectedArtistsSpan
+                    songFilter(
+                      allTopSongs,
+                      setTopSongs,
+                      value as TopSongsSelected,
+                      setSelectedSongsSpan
                     )
                   }
                 >
-                  <DropdownMenuRadioItem value={TopItemsSelected.LAST_4_WEEKS}>
+                  <DropdownMenuRadioItem
+                    value={TopSongsSelected.LAST_4_WEEKS}
+                  >
                     Last 4 weeks
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={TopItemsSelected.LAST_6_MONTHS}>
+                  <DropdownMenuRadioItem
+                    value={TopSongsSelected.LAST_6_MONTHS}
+                  >
                     Last 6 months
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={TopItemsSelected.LAST_YEAR}>
+                  <DropdownMenuRadioItem value={TopSongsSelected.LAST_YEAR}>
                     Last 12 months
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
@@ -139,13 +144,13 @@ const TopArtists = () => {
           </div>
         </CardHeader>
         <CardContent className="mx-10">
-          {topArtistsLoading ? (
+          {topSongsLoading ? (
             <Spinner />
           ) : (
             <Carousel className="w-full">
               <CarouselContent>
-                {topArtists?.items.map((artist) => (
-                  <CarouselItem className="basis-1/5" key={artist.id}>
+                {topSongs?.items.map((song) => (
+                  <CarouselItem className="basis-1/5" key={song.id}>
                     <div className="p-1">
                       <Card>
                         <CardContent className="flex aspect-square items-center justify-center p-6">
@@ -153,26 +158,26 @@ const TopArtists = () => {
                             <DialogTrigger>
                               <span className="font-semibold">
                                 <h5>
-                                  Rank {artist.my_rank}: {artist.name}
+                                  Rank {song.my_rank}: {song.name}
                                 </h5>
                                 <img
-                                  src={artist.images.at(-1)?.url}
+                                  src={song.images.at(-1)?.url}
                                   className={cn(`h-full w-full`)}
                                 />
                               </span>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px]">
                               <DialogHeader>
-                                <DialogTitle>{artist.name}</DialogTitle>
+                                <DialogTitle>{song.name}</DialogTitle>
                                 <DialogDescription>
-                                  Your nr. {artist.my_rank} artist
-                                  <img src={artist.images[0].url} />
+                                  Your nr. {song.my_rank} song
+                                  <img src={song.images[0].url} />
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="grid gap-4 py-4">
-                                <p>Global follower: {artist.followers.total}</p>
-                                <p>Global popularity: {artist.popularity}</p>
-                                <p>Your top songs from this artist:</p>
+                                <p>Global follower: {song.followers.total}</p>
+                                <p>Global popularity: {song.popularity}</p>
+                                <p>Your top songs from this song:</p>
                               </div>
                             </DialogContent>
                           </Dialog>
@@ -187,9 +192,9 @@ const TopArtists = () => {
             </Carousel>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 };
 
-export default TopArtists;
+export default TopSongs;
