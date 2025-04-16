@@ -25,6 +25,11 @@ export const UserProfile = z.object({
 });
 export type UserProfileType = z.infer<typeof UserProfile>;
 
+export enum TopItem {
+  ARTISTS = "artists",
+  SONGS = "tracks",
+}
+
 export enum TopItemsSelected {
   LAST_4_WEEKS = "short_term",
   LAST_6_MONTHS = "medium_term",

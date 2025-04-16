@@ -10,6 +10,7 @@ import {
   TopItemsSortByValues,
   RawTopArtists,
   TopItemsSelected,
+  TopItem,
 } from "./types/spotify-types";
 
 // Token
@@ -71,13 +72,14 @@ export const fetchProfile = async (
 };
 
 // Top artist
-export const fetchTopArtists = async (
+export const fetchTopItems = async (
   retry = false,
-  span: TopItemsSelected
+  span: TopItemsSelected,
+  item_type: TopItem
 ): Promise<TopArtistsType | null> => {
   try {
     const response = await fetcherGet(
-      `https://api.spotify.com/v1/me/top/artists?time_range=${span}`
+      `https://api.spotify.com/v1/me/top/${item_type}?time_range=${span}`
     );
 
     // Check for errors
@@ -87,11 +89,11 @@ export const fetchTopArtists = async (
       // If it's a 401 error and not a retry, refresh the tokens and try again
       if (error.status === 401 && !retry) {
         await refreshTokens();
-        return await fetchTopArtists(true, span);
+        return await fetchTopItems(true, span, item_type);
       }
       // Set toaster to failed
       toast(
-        `Failed to fetch top artists data. Error message: ${error.message}`
+        `Failed to fetch top ${item_type} data. Error message: ${error.message}`
       );
       return null;
     }
@@ -112,31 +114,39 @@ export const fetchTopArtists = async (
     console.log(e);
     toast(
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      `Unexpected error when fetching top artists data. Error message: ${e}`
+      `Unexpected error when fetching top ${item_type} data. Error message: ${e}`
     );
     // Set toaster to failed
     return null;
   }
 };
 
-export const fetchAllTopArtists = async (): Promise<TopArtistsType[]> => {
-  const last_4_weeks = await fetchTopArtists(
+export const fetchAllTopItems = async (
+  item_type: TopItem
+): Promise<TopArtistsType[]> => {
+  const last_4_weeks = await fetchTopItems(
     false,
-    TopItemsSelected.LAST_4_WEEKS
+    TopItemsSelected.LAST_4_WEEKS,
+    item_type
   );
-  const last_6_months = await fetchTopArtists(
+  const last_6_months = await fetchTopItems(
     false,
-    TopItemsSelected.LAST_6_MONTHS
+    TopItemsSelected.LAST_6_MONTHS,
+    item_type
   );
-  const last_year = await fetchTopArtists(false, TopItemsSelected.LAST_YEAR);
+  const last_year = await fetchTopItems(
+    false,
+    TopItemsSelected.LAST_YEAR,
+    item_type
+  );
 
   if (last_4_weeks && last_6_months && last_year) {
     return [last_4_weeks, last_6_months, last_year];
   } else {
     toast(
-      `Failed to fetch data for ${!last_4_weeks && "last 4 weeks,"} ${!last_6_months && "last 6 months,"} ${!last_year && "last year"}`
+      `Failed to fetch all top artists data for ${!last_4_weeks && "last 4 weeks,"} ${!last_6_months && "last 6 months,"} ${!last_year && "last year"}`
     );
-    throw Error("Failed to fetch data");
+    throw Error("Failed to fetch all top artists data");
   }
 };
 

@@ -3,12 +3,13 @@ import { cn } from "@/lib/generalUtils";
 import {
   artistSortByRanking,
   artistFilter,
-  fetchAllTopArtists,
+  fetchAllTopItems,
 } from "@/lib/spotifyUtils";
 import {
   TopItemsSortByValues,
   TopItemsSelected,
   TopArtistsType,
+  TopItem,
 } from "@/lib/types/spotify-types";
 import {
   Dialog,
@@ -54,7 +55,7 @@ const TopArtists = () => {
     if (spotifyContext.isLoggedIn) {
       if (!allTopArtists) {
         setTopArtistsLoading(true);
-        fetchAllTopArtists()
+        fetchAllTopItems(TopItem.ARTISTS)
           .then((res) => {
             setAllTopArtists(res);
             setTopArtists(res[0]);
