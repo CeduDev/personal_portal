@@ -2,14 +2,14 @@ import { use, useEffect, useState } from "react";
 import { cn } from "@/lib/generalUtils";
 import {
   artistSortByRanking,
-  artistFilter,
+  itemFilter,
   fetchAllTopItems,
 } from "@/lib/spotifyUtils";
 import {
-  TopItemsSortByValues,
   TopItemsSelected,
   TopArtistsType,
   TopItem,
+  TopArtistsSortByValues,
 } from "@/lib/types/spotify-types";
 import {
   Dialog,
@@ -40,7 +40,7 @@ import { SpotifyProviderContext } from "@/contexts/spotify-context";
 
 const TopArtists = () => {
   const [artistSortByValue, setArtistSortByValue] =
-    useState<TopItemsSortByValues>(TopItemsSortByValues.MY_RANK);
+    useState<TopArtistsSortByValues>(TopArtistsSortByValues.MY_RANK);
   const [selectedArtistsSpan, setSelectedArtistsSpan] =
     useState<TopItemsSelected>(TopItemsSelected.LAST_4_WEEKS);
   const [topArtists, setTopArtists] = useState<TopArtistsType | null>(null);
@@ -57,8 +57,9 @@ const TopArtists = () => {
         setTopArtistsLoading(true);
         fetchAllTopItems(TopItem.ARTISTS)
           .then((res) => {
-            setAllTopArtists(res);
-            setTopArtists(res[0]);
+            const r = res as TopArtistsType[];
+            setAllTopArtists(r);
+            setTopArtists(r[0]);
           })
           .catch((e) => console.log(e))
           .finally(() => setTopArtistsLoading(false));
@@ -90,20 +91,22 @@ const TopArtists = () => {
                       allTopArtists,
                       setTopArtists,
                       setAllTopArtists,
-                      value as TopItemsSortByValues,
+                      value as TopArtistsSortByValues,
                       setArtistSortByValue
                     )
                   }
                 >
-                  <DropdownMenuRadioItem value={TopItemsSortByValues.MY_RANK}>
+                  <DropdownMenuRadioItem value={TopArtistsSortByValues.MY_RANK}>
                     My Rank
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem
-                    value={TopItemsSortByValues.GLOBAL_RANK}
+                    value={TopArtistsSortByValues.GLOBAL_RANK}
                   >
                     Global Rank
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value={TopItemsSortByValues.FOLLOWERS}>
+                  <DropdownMenuRadioItem
+                    value={TopArtistsSortByValues.FOLLOWERS}
+                  >
                     Followers
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
@@ -117,7 +120,8 @@ const TopArtists = () => {
                 <DropdownMenuRadioGroup
                   value={selectedArtistsSpan}
                   onValueChange={(value) =>
-                    artistFilter(
+                    itemFilter(
+                      TopItem.ARTISTS,
                       allTopArtists,
                       setTopArtists,
                       value as TopItemsSelected,
@@ -157,7 +161,7 @@ const TopArtists = () => {
                                   Rank {artist.my_rank}: {artist.name}
                                 </h5>
                                 <img
-                                  src={artist.images.at(-1)?.url}
+                                  src={artist.images?.at(-1)?.url}
                                   className={cn(`h-full w-full`)}
                                 />
                               </span>
@@ -167,7 +171,7 @@ const TopArtists = () => {
                                 <DialogTitle>{artist.name}</DialogTitle>
                                 <DialogDescription>
                                   Your nr. {artist.my_rank} artist
-                                  <img src={artist.images[0].url} />
+                                  <img src={artist.images?.[0].url} />
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="grid gap-4 py-4">

@@ -15,6 +15,7 @@ import { cn } from "@/lib/generalUtils";
 import { GlobalProviderContext } from "@/contexts/global-context";
 import UserProfile from "./spotifyUserProfile";
 import TopArtists from "./spotifyTopArtists";
+import TopSongs from "./spotifyTopSongs";
 
 const SingleItemWrapper = ({
   title,
@@ -137,6 +138,7 @@ const Spotify = () => {
     <div>
       <UserProfile />
       <TopArtists />
+      <TopSongs />
     </div>
   );
 };

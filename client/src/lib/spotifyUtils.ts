@@ -7,10 +7,14 @@ import {
   UserProfileType,
   TopArtistsType,
   TopArtists,
-  TopItemsSortByValues,
   RawTopArtists,
   TopItemsSelected,
   TopItem,
+  RawTopSongs,
+  TopSongs,
+  TopSongsType,
+  TopSongsSortByValues,
+  TopArtistsSortByValues,
 } from "./types/spotify-types";
 
 // Token
@@ -76,7 +80,7 @@ export const fetchTopItems = async (
   retry = false,
   span: TopItemsSelected,
   item_type: TopItem
-): Promise<TopArtistsType | null> => {
+): Promise<TopArtistsType | TopSongsType | null> => {
   try {
     const response = await fetcherGet(
       `https://api.spotify.com/v1/me/top/${item_type}?time_range=${span}`
@@ -89,6 +93,7 @@ export const fetchTopItems = async (
       // If it's a 401 error and not a retry, refresh the tokens and try again
       if (error.status === 401 && !retry) {
         await refreshTokens();
+
         return await fetchTopItems(true, span, item_type);
       }
       // Set toaster to failed
@@ -98,18 +103,33 @@ export const fetchTopItems = async (
       return null;
     }
 
-    const raw_artists = RawTopArtists.parse(await response.json());
+    if (item_type == TopItem.ARTISTS) {
+      const raw_artists = RawTopArtists.parse(await response.json());
 
-    const topArtistsData = {
-      ...raw_artists,
-      items: raw_artists.items.map((artist, index) => ({
-        ...artist,
-        my_rank: index + 1,
-      })),
-      span: span,
-    };
+      const topArtistsData = {
+        ...raw_artists,
+        items: raw_artists.items.map((artist, index) => ({
+          ...artist,
+          my_rank: index + 1,
+        })),
+        span: span,
+      };
 
-    return TopArtists.parse(topArtistsData);
+      return TopArtists.parse(topArtistsData);
+    } else {
+      const raw_songs = RawTopSongs.parse(await response.json());
+
+      const topSongsData = {
+        ...raw_songs,
+        items: raw_songs.items.map((song, index) => ({
+          ...song,
+          my_rank: index + 1,
+        })),
+        span: span,
+      };
+
+      return TopSongs.parse(topSongsData);
+    }
   } catch (e) {
     console.log(e);
     toast(
@@ -123,7 +143,7 @@ export const fetchTopItems = async (
 
 export const fetchAllTopItems = async (
   item_type: TopItem
-): Promise<TopArtistsType[]> => {
+): Promise<TopArtistsType[] | TopSongsType[]> => {
   const last_4_weeks = await fetchTopItems(
     false,
     TopItemsSelected.LAST_4_WEEKS,
@@ -141,12 +161,24 @@ export const fetchAllTopItems = async (
   );
 
   if (last_4_weeks && last_6_months && last_year) {
-    return [last_4_weeks, last_6_months, last_year];
+    if (item_type === TopItem.ARTISTS) {
+      return [
+        last_4_weeks as TopArtistsType,
+        last_6_months as TopArtistsType,
+        last_year as TopArtistsType,
+      ];
+    }
+
+    return [
+      last_4_weeks as TopSongsType,
+      last_6_months as TopSongsType,
+      last_year as TopSongsType,
+    ];
   } else {
     toast(
-      `Failed to fetch all top artists data for ${!last_4_weeks && "last 4 weeks,"} ${!last_6_months && "last 6 months,"} ${!last_year && "last year"}`
+      `Failed to fetch all top ${item_type} data for ${!last_4_weeks && "last 4 weeks,"} ${!last_6_months && "last 6 months,"} ${!last_year && "last year"}`
     );
-    throw Error("Failed to fetch all top artists data");
+    throw Error(`Failed to fetch all top ${item_type} data`);
   }
 };
 
@@ -156,9 +188,9 @@ export const artistSortByRanking = (
   all_data: TopArtistsType[] | null,
   setData: React.Dispatch<React.SetStateAction<TopArtistsType | null>>,
   setAllData: React.Dispatch<React.SetStateAction<TopArtistsType[] | null>>,
-  value: TopItemsSortByValues,
+  value: TopArtistsSortByValues,
   setArtistSortByValue: React.Dispatch<
-    React.SetStateAction<TopItemsSortByValues>
+    React.SetStateAction<TopArtistsSortByValues>
   >
 ) => {
   if (data && all_data && all_data.length > 0) {
@@ -167,17 +199,17 @@ export const artistSortByRanking = (
     setArtistSortByValue(value);
 
     switch (value) {
-      case TopItemsSortByValues.MY_RANK: {
+      case TopArtistsSortByValues.MY_RANK: {
         data_.items = data_.items.sort((a, b) => a.my_rank - b.my_rank);
         break;
       }
 
-      case TopItemsSortByValues.GLOBAL_RANK: {
+      case TopArtistsSortByValues.GLOBAL_RANK: {
         data_.items = data_.items.sort((a, b) => b.popularity - a.popularity);
         break;
       }
 
-      case TopItemsSortByValues.FOLLOWERS: {
+      case TopArtistsSortByValues.FOLLOWERS: {
         data_.items = data_.items.sort(
           (a, b) => b.followers.total - a.followers.total
         );
@@ -194,16 +226,75 @@ export const artistSortByRanking = (
   }
 };
 
+export const songSortByRanking = (
+  data: TopSongsType | null,
+  all_data: TopSongsType[] | null,
+  setData: React.Dispatch<React.SetStateAction<TopSongsType | null>>,
+  setAllData: React.Dispatch<React.SetStateAction<TopSongsType[] | null>>,
+  value: TopSongsSortByValues,
+  setSongSortByValue: React.Dispatch<React.SetStateAction<TopSongsSortByValues>>
+) => {
+  if (data && all_data && all_data.length > 0) {
+    const data_ = data;
+    const all_data_ = all_data;
+    setSongSortByValue(value);
+
+    switch (value) {
+      case TopSongsSortByValues.MY_RANK: {
+        data_.items = data_.items.sort((a, b) => a.my_rank - b.my_rank);
+        break;
+      }
+
+      case TopSongsSortByValues.GLOBAL_RANK: {
+        data_.items = data_.items.sort((a, b) => {
+          if (b.popularity === undefined) return 1;
+          if (a.popularity === undefined) return -1;
+          return b.popularity - a.popularity;
+        });
+        break;
+      }
+
+      case TopSongsSortByValues.DURATION: {
+        data_.items = data_.items.sort((a, b) => {
+          if (b.duration_ms === undefined) return 1;
+          if (a.duration_ms === undefined) return -1;
+          return b.duration_ms - a.duration_ms;
+        });
+        break;
+      }
+
+      default:
+        console.log("Unsupported sorting type");
+    }
+
+    all_data_[all_data_.findIndex((a) => a.span === data_.span)] = data_;
+    setAllData(all_data_);
+    setData(data_);
+  }
+};
+
 // Filtering
-export const artistFilter = (
-  all_data: TopArtistsType[] | null,
-  setData: React.Dispatch<React.SetStateAction<TopArtistsType | null>>,
+export const itemFilter = (
+  item_type: TopItem,
+  all_data: TopArtistsType[] | TopSongsType[] | null,
+  setData:
+    | React.Dispatch<React.SetStateAction<TopArtistsType | null>>
+    | React.Dispatch<React.SetStateAction<TopSongsType | null>>,
   value: TopItemsSelected,
   setValue: React.Dispatch<React.SetStateAction<TopItemsSelected>>
 ) => {
   if (all_data && all_data.length > 0) {
-    const all_data_ = all_data;
     setValue(value);
-    setData(all_data_.find((a) => a.span === value) as TopArtistsType);
+    if (item_type === TopItem.ARTISTS) {
+      const setData_ = setData as React.Dispatch<
+        React.SetStateAction<TopArtistsType | null>
+      >;
+      setData_(all_data.find((a) => a.span === value) as TopArtistsType);
+    } else {
+      const setData_ = setData as React.Dispatch<
+        React.SetStateAction<TopSongsType | null>
+      >;
+      setData_(all_data.find((a) => a.span === value) as TopSongsType);
+    }
   }
 };
