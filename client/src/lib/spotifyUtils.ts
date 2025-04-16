@@ -12,6 +12,7 @@ import {
   TopArtistsSelected,
 } from "./types/spotify-types";
 
+// Token
 const refreshTokens = async (): Promise<void> => {
   const existingToken = localStorage.getItem(SPOTIFY_REFRESH_TOKEN_SK);
   const response = await fetch(
@@ -24,6 +25,7 @@ const refreshTokens = async (): Promise<void> => {
     localStorage.setItem(SPOTIFY_REFRESH_TOKEN_SK, res.refresh_token);
 };
 
+// General fetcher
 const fetcherGet = async (link: string) => {
   const token = localStorage.getItem(SPOTIFY_ACCESS_TOKEN_SK);
   const response = await fetch(link, {
@@ -34,6 +36,7 @@ const fetcherGet = async (link: string) => {
   return response;
 };
 
+// Profile
 export const fetchProfile = async (
   retry = false
 ): Promise<UserProfileType | null> => {
@@ -67,6 +70,7 @@ export const fetchProfile = async (
   }
 };
 
+// Top artist
 export const fetchTopArtists = async (
   retry = false,
   span: TopArtistsSelected
@@ -136,6 +140,7 @@ export const fetchAllTopArtists = async (): Promise<TopArtistsType[]> => {
   }
 };
 
+// Sorting
 export const artistSortByRanking = (
   data: TopArtistsType | null,
   all_data: TopArtistsType[] | null,
@@ -179,6 +184,7 @@ export const artistSortByRanking = (
   }
 };
 
+// Filtering
 export const artistFilter = (
   all_data: TopArtistsType[] | null,
   setData: React.Dispatch<React.SetStateAction<TopArtistsType | null>>,
